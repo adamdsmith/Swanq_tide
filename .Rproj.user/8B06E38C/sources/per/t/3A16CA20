@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1519937225844.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1410681191",
+    "id" : "3A16CA20",
+    "lastKnownWriteTime" : 1459970670,
+    "last_content_update" : 1459970670,
+    "path" : "~/FWS_Projects/Swanq_tide/R/get_qclcd_asos_scraps.R",
+    "project_path" : "R/get_qclcd_asos_scraps.R",
+    "properties" : {
+        "cursorPosition" : "5,55",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

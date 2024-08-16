@@ -1,0 +1,9 @@
+name: SQ_water_level
+account: adamsmith-fws
+server: shinyapps.io
+appId: 93838
+bundleId: 417195
+url: https://adamsmith-fws.shinyapps.io/SQ_water_level/
+when: 1460467256.92196
+asMultiple: FALSE
+asStatic: FALSE

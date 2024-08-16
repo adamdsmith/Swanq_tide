@@ -1,0 +1,217 @@
+---
+title: "Swanquarter NWR tide gage"
+output:
+  html_document:
+    theme: cerulean
+runtime: shiny
+---
+
+```{r set-options, echo=FALSE, cache=FALSE}
+options(width = 600, scipen=999)
+knitr::opts_chunk$set(message=FALSE, warning=FALSE, echo=FALSE)
+```
+
+The specific objectives of this document are:
+
+1. To compare water level from sonde deployments at [Bell Island fishing pier](https://goo.gl/maps/P8AzomW9toL2) (blue lines) on Swanquarter National Wildlife Refuge with water levels and weather conditions from a tide gage/buoy at [USCG Station Hatteras](http://tidesandcurrents.noaa.gov/waterlevels.html?id=8654467) (black lines) and water levels from the [North Carolina Pungo River gage]()(red line).
+
+
+```{r loadstuff}
+ncdc <- "BvCqJZBhVjtoLSvZIzWarGmRMVTJBPjr"
+
+# Loading required packages
+pacman::p_load(readr, readxl, dplyr, lubridate, sp, leaflet, 
+               dygraphs, rnoaa, ggplot2, shiny)
+# readr       # Reading Excel data
+# readxl      # Reading Excel data
+# dplyr       # Data manipulation
+# lubridate   # Dealing with dates
+# sp          # Spatial data
+# leaflet     # Interactive mapping
+# dygraphs    # R interface to the dygraphs JS library for time series
+# rnoaa       # Access to NOAA tide gages and buoy weather
+# ggplot2     # Plotting
+# shiny       # Interactive plots
+
+# Load utility functions
+source("./R/utils.R")
+```
+
+```{r import_caha_tide, eval = FALSE}
+# Retrieve USCG Station Hatteras tide gage data
+caha <- get_tides()
+save(caha, file = "./Data/caha_gage.rda")
+```
+
+```{r weather, eval = FALSE}
+# From CAHA buoy, we can get matched (to tide) wind speed, direction, and SST
+caha_wx <- get_buoy_wx()
+
+caha_prcp <- ghcnd_search(stationid = "USW00093729",
+                          date_min = "2013-05-01", # for some reason, use day before start
+                          date_max = "2015-12-01",
+                          var = "PRCP")[[1]] %>%
+# Adding day so it shows previous 24 hours of precip
+  mutate(dt = ymd_hms(paste(date, "00:00:00")) + days(1), 
+         prior_prcp = round(prcp / 100 / 2.54, 2)) %>% # convert to inches
+  select(dt, prior_prcp) %>% arrange(dt) %>% as.data.frame()
+
+caha_wx <- left_join(caha_wx, caha_prcp)
+#save(caha_wx, file = "./Data/caha_wx.rda")
+
+```
+
+```{r bell_pungo}
+# Load spreadsheets and convert to usable format
+bell <- readxl_allsheets("./Data/WaterLevelData_BellIsland.xlsx")
+bell[["metadata"]] <- NULL
+bell <- as.data.frame(do.call(rbind, bell)) %>%
+  select(9:12) 
+names(bell) <- c("dt", "wl", "sst", "sal")
+bell <- mutate(bell,
+               dt = round_date(dt, "minute"))
+
+pungo <- readxl_allsheets("./Data/Pungo_waterlevel.xlsx")
+pungo[["Metadata"]] <- NULL
+pungo <- as.data.frame(do.call(rbind, pungo)) %>%
+  mutate(dt = ymd_hms(Reading),
+         wl = Value / 3.28084) %>% # convert to m
+  select(dt, wl)
+```
+
+
+```{r plots}
+load("./Data/caha_gage.rda")
+load("./Data/caha_wx.rda")
+caha <- left_join(caha, caha_wx)
+data_list <- list(bell = bell, caha = caha, pungo = pungo)
+
+# Build the Shiny App
+shinyApp(
+  
+ui <- fluidPage(
+  fluidRow(
+    column(12, 
+           h5(helpText(p(strong(span("Bell Island", style = "color:blue"), "data available: 3 May 2013 - 7 Feb 2014; 6 May - 16 Jul 2014")))))
+  ), 
+  
+  fluidRow(
+    column(3, 
+           dateInput("date", label = h4("Select a start date:"),
+                     value = "2013-05-03")),
+#           actionButton("nextmo", "Next month", style='padding:6px; font-size:90%'),
+#           actionButton("next3mos", "Next 3 months", style='padding:6px; font-size:90%')),
+    column(3,
+           radioButtons("window", label = h4("Select a time window"),
+                        choices = list("3 days" = 3, 
+                                       "1 week" = 7,
+                                       "1 month" = 30,
+                                       "3 months" = 90), selected = 3)),
+    column(4,
+           checkboxGroupInput("showGage", label = h4("Select supporting gages to view"), 
+                              choices = list("USCG Station Hatteras" = "caha", "Pungo River" = "pungo"),
+                              selected = c("caha", "pungo")))
+  ),
+  
+  fluidRow(
+    column(width = 12,
+           plotOutput("tides", height = 250))
+  ),
+  
+  fluidRow(
+    column(width = 12,
+           plotOutput("temps", height = 200))
+  ),
+  
+  fluidRow(
+    column(width = 12,
+           plotOutput("salinity", height = 200))
+  )
+
+),
+
+server <- function(input, output, session) {
+
+  filterData <- reactive({
+    filt_dat <- data_list[c("bell", input$showGage)]
+    start_date <- ymd(input$date)
+    filt_dat <- lapply(filt_dat, function(gage) {
+      gage[gage$dt >= start_date & gage$dt <= start_date + days(input$window), ]
+    })
+  })
+
+  output$tides <- renderPlot({
+    plotDat <- filterData()
+    # Get date and water level range across all requested gages
+    dateRange <- diff(range(unlist(lapply(plotDat, function(gage) gage$dt)), na.rm = TRUE))
+    wlRange <- diff(range(unlist(lapply(plotDat, function(gage) gage$wl)), na.rm = TRUE))
+    # Scaling so wind
+    scaling <- c(dateRange, wlRange)
+    
+#    plotDat <- mutate(plotDat,
+#                  x.end = dt + wsp_sc * scaling[[1]] * sin(wdir / 180 * pi),
+#                  y.end = bell_wl + wsp_sc * scaling[[2]] * cos(wdir / 180 * pi))
+    plotDat <- mutate(plotDat,
+                      x.end = dt + 0.001 * scaling[[1]] * sin(wdir / 180 * pi),
+                      y.end = bell_wl + 0.001 * scaling[[2]] * cos(wdir / 180 * pi))
+    
+    l_size <- 0.75
+     
+    p <- ggplot(data = plotDat[["bell"]], aes(x = dt, y = wl)) +
+      geom_line(size = l_size, color = "blue") +
+    
+     if (n_days < 60) {
+         n_days <- length(unique(lubridate::yday(plotDat$dt)))
+         arrDat <- plotDat[every_nth(1:nrow(plotDat), 
+                                     ifelse(n_days > 8, 60, ifelse(n_days > 4, 20, 10)),
+                                     empty = FALSE, inverse = TRUE), ]
+         p <- p + geom_segment(data = arrDat,
+                               size = l_size*1.5,
+                               aes(x = dt, xend = x.end, 
+                                   y = bell_wl, yend = y.end,   
+                                   colour = wsp),
+                               arrow = arrow(angle = 20, length = unit(0.04, "snpc"), 
+                                             ends = "first"))
+    }
+   
+    if ("caha" %in% input$showGage) {
+      p <- p + geom_line(data = plotDat[["caha"]], size = l_size) 
+    }
+      ylab("Water level, choose your units") + xlab("") +
+      scale_colour_gradient("Wind speed (m/s)", low="green", high="red") + theme_bw() +
+      theme(legend.justification=c(0,1), legend.position=c(0,1.025),
+            legend.direction = "horizontal", legend.key.height = unit(0.02, "snpc"),
+            legend.background = element_rect(fill=NA))
+    
+    
+    if (nrow(pungoDat) > 0) 
+      p <- p + geom_line(data = pungoDat, aes(x = dt, y = pungo_wl), size = l_size, color = "red") 
+
+    p
+    
+  })
+
+  output$temps <- renderPlot({
+    plotDat <- filterData()
+    l_size <- 0.75
+    ggplot(data = plotDat, aes(x = dt, y = sst)) + geom_line(size = l_size) + 
+      geom_line(aes(y = bell_sst), size = l_size, color = "blue") +
+      ylab(expression("Water temperature "(degree*C))) + xlab("") +
+      theme_bw()
+  })
+  
+   output$salinity <- renderPlot({
+    plotDat <- filterData()
+    l_size <- 0.75
+    ggplot(data = plotDat, aes(x = dt, y = bell_sal)) + 
+      geom_line(size = l_size, color = "blue") + 
+      ylab("Salinity (ppt)") + xlab("Date & time") +
+      theme_bw()
+  })
+
+},
+  
+  options = list(height = 850)
+
+)
+```

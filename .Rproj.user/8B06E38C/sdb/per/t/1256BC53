@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "# Read all worksheets from Excel document\nreadxl_allsheets <- function(filename, ...) {\n  sheets <- readxl::excel_sheets(filename)\n  x <- lapply(sheets, function(X) readxl::read_excel(filename, sheet = X, ...))\n  names(x) <- sheets\n  x\n}\n\nget_tides <- function(startday = \"2013/5/3\", \n                      endday = \"2017/06/27\", \n                      product = \"water_level\",\n                      station = 8654467)\n{\n  # Have to do it one month at a time...\n  dates <- seq.Date(as.Date(startday), as.Date(endday) + months(1), by = \"month\")\n  dates <- as.numeric(gsub(\"-\", \"\", dates))\n  \n  out <- lapply(seq_along(dates), function(i) {\n    if (i == 1) {\n      # Do nothing\n    } else {\n      start <- dates[i-1]\n      end <- dates[i]\n      cat(\"Processing month beginning on\", format(ymd(start), format = \"%d %B, %Y\"), \"\\n\")\n      out <- coops_search(station_name = station,\n                          begin_date = start,\n                          end_date = end,\n                          datum = \"NAVD\",\n                          product = product,\n                          units = \"metric\")\n      # Check if record is complete AND if time is missing on records\n      # If both conditions are met, we can restore the times\n      n_days <- as.numeric(difftime(ymd(end), ymd(start), units = \"days\")) + 1\n      repair <- (n_days * 240 == nrow(out$data)) && all(hour(out$data$t) == 0)\n      if (repair) {\n        tmp <- expand.grid(m = seq(0, 54, 6), h = 0:23, s = 0)\n        tmp <- apply(tmp, 1, function(cols) paste(cols[2], cols[1], cols[3])) # Create string for HMS conversion\n        out$data$t <- ymd_hms(paste(out$data$t, tmp))\n        cat(\"    NOTE: Missing time information; attempted repair.\\n\")\n      }\n      # Specify time zone\n      tz(out$data$t) <- \"GMT\"\n      with(out[[\"data\"]], data.frame(dt = t, wl = v))\n    }\n  })\n  \n  out <- do.call(\"rbind\", out)\n  out <- out[out$dt >= ymd(startday) & out$dt <= (ymd(endday) + days(1)), ]\n  out <- out[!duplicated(out$dt), ]\n  \n}\n\nget_buoy_wx <- function(startday = \"5/3/2013\",\n                        endday = \"11/30/2015\",\n                        buoyid = \"HCGN7\",\n                        vars = c(\"wind_dir\", \"wind_spd\", \"sea_surface_temperature\"),\n                        abbr = c(\"wdir\", \"wsp\", \"sst\")) {\n  years <- year(mdy(startday)):year(mdy(endday))\n  \n  out <- lapply(years, function(yr) {\n    \n    cat(\"Processing buoy meteorological data for\", yr, \"\\n\")\n    dat <- buoy(dataset = \"stdmet\", buoyid = buoyid, year = yr)$data\n    if (!all(vars %in% names(dat))) stop(\"At least one requested variable is not available.\")\n    dat <- dat[, c(\"time\", vars)] %>%\n      mutate(time = ymd_hms(paste(substr(time, 1, 10), substr(time, 12, 19))))\n    if (!is.null(abbr)) names(dat) <- c(\"dt\", abbr)\n    dat\n    \n  })\n  \n  if (length(years) > 1) out <- do.call(\"rbind\", out) else out <- out[[1]]\n  out <- out[out$dt >= mdy(startday) & out$dt <= (mdy(endday) + days(1)), ]\n}\n\nscale_vec <- function(vec, scale = c(0, 1)) {\n  out <- ((scale[2] - scale[1]) * (vec - min(vec, na.rm=TRUE)))/(max(vec, na.rm=TRUE) - min(vec, na.rm=TRUE)) + scale[1]\n  out\n}\n\nevery_nth <- function(x, nth, empty = TRUE, inverse = FALSE) \n{\n  if (!inverse) {\n    if(empty) {\n      x[1:nth == 1] <- \"\"\n      x\n    } else {\n      x[1:nth != 1]\n    }\n  } else {\n    if(empty) {\n      x[1:nth != 1] <- \"\"\n      x\n    } else {\n      x[1:nth == 1]\n    }\n  }\n}",
+    "created" : 1459883269451.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1428849960",
+    "id" : "1256BC53",
+    "lastKnownWriteTime" : 1498677633,
+    "last_content_update" : 1498677633255,
+    "path" : "~/FWS_Projects/Swanq_tide/R/utils.R",
+    "project_path" : "R/utils.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : true,
+    "source_window" : "",
+    "type" : "r_source"
+}

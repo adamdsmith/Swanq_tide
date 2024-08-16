@@ -1,0 +1,17 @@
+library(readr); library(dplyr); library(lubridate)
+bell_hist <- read_csv("Data/Processed_sonde_data/Bell_Nov2018.csv",
+                      col_types = "ccnnnnnnn", 
+                      na = c("", "NA", "NaN")) %>%
+  mutate(date = as.Date(mdy(date, tz = "Etc/GMT+5")))
+
+bell_new <- read_csv("Data/Processed_sonde_data/CR200_Bell_WaterData.csv") %>%
+  mutate(date = as.Date(mdy_hm(TS), tz = "Etc/GMT+5"),
+         time_24h = gsub("^.* ", "", TS)) %>%
+  select(date, time_24h, temp_c = Temp_degC, spcond_ms = Scond_us_cm,
+         sal_ppt = Sal_ppt, depth_m = Depth_m, battery_v = `Battery volts`,
+         depth_navd88_m = `NAVD88 depth m`) # Note that `tds_gl` appears to be missing from this csv
+
+all_bell <- bind_rows(bell_hist, bell_new)
+
+# Append to ongoing water level data history
+write_csv(all_bell, path = "./Output/Bell_WaterData_history.csv")

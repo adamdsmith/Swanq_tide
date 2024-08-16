@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "name: Publish Document\ntitle:\naccount: rpubs\nserver: rpubs.com\nappId: https://api.rpubs.com/api/v1/document/224096/6745a7f28c4e436ebb33052dd956699f\nbundleId: https://api.rpubs.com/api/v1/document/224096/6745a7f28c4e436ebb33052dd956699f\nurl: http://rpubs.com/adamsmith_fws/224096\nwhen: 1498753608.84169\n",
+    "created" : 1498757742622.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "297654151",
+    "id" : "B4468C02",
+    "lastKnownWriteTime" : 1498753608,
+    "last_content_update" : 1498753608,
+    "path" : "~/FWS_Projects/Swanq_tide/rsconnect/documents/SQ_water_dygraph.Rmd/rpubs.com/rpubs/Publish Document.dcf",
+    "project_path" : "rsconnect/documents/SQ_water_dygraph.Rmd/rpubs.com/rpubs/Publish Document.dcf",
+    "properties" : {
+    },
+    "relative_order" : 4,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "dcf"
+}

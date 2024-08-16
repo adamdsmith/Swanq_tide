@@ -1,0 +1,18 @@
+Collection Location: Bell Island Pier (35.435449N, 76.399475W WGS 84). The station is operated as part of the R4 NWRS Inventory and Monitoring program in cooperation with Mattamuskeet NWR and North Carolina State University	
+Collection Period: 2013/05/02 - 2017/06/26	
+
+Field			Definition
+date			Date of sample (YYY/MM/DD)
+time_24h		Time of sample (EST, HH:MM), 24-hour clock
+temp_c			Water temperature of sample (degrees Celcius)
+spcond_ms		Specific conductance in microseimens per centimeter at 25 degrees Celcius
+sal_ppt			Salinity (parts per thousand)
+depth_m			Depth of sonde below water surface (meters)
+battery_v		Battery voltage
+tds_gl			Total dissolved solids (calculated; grams per liter)
+depth_navd88_m		Water level surface in North American Vertical Datum of 1988 (meters)
+	
+bell_island.csv includes "good" data, meaning (1) data collected from 2014/02/09 - 2014/07/15 was not calibrated correctly and is excluded and (2) extreme data points (i.e., a single water level sample that differed by more than 0.5 m from the previous and subsequent water level) were deleted.  
+
+NAVD88 elevation of water surface (m) calculated by adding the depth of the water column to the calculated elevation of the bolt in the bottom of the pipe. This elevation was derived by averaging the elevation of the top of the PVC pipe acquired from the survey data pre- and post-deployment and subtracting the measured length of the pipe.  Beginning in Sep 2015, a measuring point was added to the PVC pipe to ensure that the same point is surveyed on repeat visits.	
+	

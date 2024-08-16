@@ -1,0 +1,10 @@
+base
+readr
+readxl
+dplyr
+lubridate
+sp
+leaflet
+rnoaa
+ggplot2
+plotly

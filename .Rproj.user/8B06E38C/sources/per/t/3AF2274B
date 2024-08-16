@@ -1,0 +1,24 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1478187996114.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3598823028",
+    "id" : "3AF2274B",
+    "lastKnownWriteTime" : 1519999845,
+    "last_content_update" : 1519999845616,
+    "path" : "~/FWS_Projects/Swanq_tide/SQ_water_dygraph.Rmd",
+    "project_path" : "SQ_water_dygraph.Rmd",
+    "properties" : {
+        "cursorPosition" : "5,17",
+        "last_setup_crc32" : "25E2F903f3c0c303",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

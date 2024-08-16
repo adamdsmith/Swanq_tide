@@ -1,0 +1,8 @@
+name: Publish Document
+title:
+account: rpubs
+server: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/224096/6745a7f28c4e436ebb33052dd956699f
+bundleId: https://api.rpubs.com/api/v1/document/224096/6745a7f28c4e436ebb33052dd956699f
+url: http://rpubs.com/adamsmith_fws/224096
+when: 1498753608.84169

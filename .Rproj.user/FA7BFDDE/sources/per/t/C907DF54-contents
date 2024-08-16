@@ -1,0 +1,237 @@
+---
+title: "Bell Island Pier water level visualization"
+output:
+  html_document:
+    fig_width: 10
+    fig_height: 2
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(scipen = 999, stringsAsFactors = FALSE)
+
+# Loading required packages
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools", quiet = TRUE)
+if (!requireNamespace("nrssmisc", quietly = TRUE))
+    devtools::install_github("adamdsmith/nrsmisc", quiet = TRUE)
+
+pacman::p_load(readr, dplyr, lubridate, nrsmisc, rnoaa,
+               ggplot2, viridis, zoo, dygraphs, htmlwidgets, 
+               manipulateWidget)
+
+# Set colors
+colors <- substr(viridis(3, alpha = 0, end = 0.8, option = "B"), 1, 7)
+```
+
+Compare water level, sea surface temperature, and salinity from sonde deployment at [Bell Island fishing pier](https://goo.gl/maps/ib3hbgEAgpv) on Swanquarter NWR with those at the [Pungo River in Bellhaven, NC](https://mesonet.agron.iastate.edu/sites/site.php?station=BLHN7&network=NC_DCP) and [USCG Station Hatteras](http://tidesandcurrents.noaa.gov/stationhome.html?id=8654467).
+
+### Legend  
+
+- <strong style="color: #000004;">Bell Island Pier</strong>
+- <strong style="color: #932667;">Pungo River @ Bellhaven</strong>
+- <strong style="color: #FCA50A;">Cape Hatteras</strong>
+
+```{r bell_tide}
+fn <- list.files("./Data/Processed_sonde_data/", pattern = "^Bell_Nov", full = TRUE)
+for (i in fn) {
+  tmp <- read_csv(i, na = c("", "NA"),
+                  col_names = c("MatlabDate", "Date", "Record", "Logger_Battery", 
+                                "Date_YSI", "Time_YSI", "Water_Temperature", 
+                                "Specific_Conductance", "Salinity", "Depth", 
+                                "YSI_battery", "TDS", "NAVD88_Depth", "Depth_ft", 
+                                "NAVD88_Depth_ft"),
+                  col_types = "nciniinnndnnddd",
+                  skip = 4) %>%
+  mutate(Date = mdy_hm(Date, tz = "Etc/GMT+5"))
+  # Append to ongoing water level data history
+  write_csv(tmp, path = "./Output/Bell_WaterData_history.csv",
+            append = TRUE)
+  file.rename(i, file.path("./Data/Processed_sonde_data", basename(i)))
+}
+
+bell <- read_csv("./Output/Bell_WaterData_history.csv") %>%
+  select(dt = Date, bell_sst = Water_Temperature, bell_sal = Salinity,
+         bell_wl = NAVD88_Depth) %>%
+  filter(minute(dt) %in% c(0, 30),
+         !duplicated(dt)) %>%
+  # Add unused date/time to break up series
+  add_row(dt = ymd_hm("2015/01/01 12:34")) %>%
+  arrange(dt) %>%
+  as.data.frame()
+
+bell_dates <- unique(as.Date(bell$dt))
+bell_dr <- as.Date(range(bell$dt))
+```
+
+```{r caha_tide}
+# Retrieve USCG Station Hatteras tide gage data
+caha <- readRDS("./Data/Ancillary/caha_gage.rds")
+caha_end <- as.Date(max(caha$dt))
+if (bell_dr[2] > caha_end) {
+  caha_new <- get_coop(station_name = 8654467,
+                       product = "water_level",
+                       datum = "NAVD",
+                       start = caha_end,
+                       end = bell_dr[2]) %>%
+    select(dt = t, wl = v)
+  caha <- bind_rows(caha, caha_new) %>%
+    filter(minute(dt) %in% c(0, 30),
+           !duplicated(dt))
+  saveRDS(caha, file = "./Data/Ancillary/caha_gage.rds")
+}
+```
+
+```{r caha_wx}
+# From CAHA buoy, we can get matched (to tide) wind speed, direction, and SST
+caha_wx <- readRDS("./Data/Ancillary/caha_wx.rds")
+caha_wx_end <- max(as.Date(caha_wx$dt))
+if (bell_dr[2] > caha_wx_end) {
+  need_yrs <- year(caha_wx_end):year(bell_dr[2])
+  caha_wx_new <- get_buoy_wx("HCGN7", years = need_yrs) %>%
+    select(dt = datetime, wdir, wsp = wspd_ms, sst = sst_c)
+  caha_wx <- bind_rows(caha_wx, caha_wx_new) %>%
+    filter(minute(dt) %in% c(0, 30),
+           !duplicated(dt))
+  saveRDS(caha_wx, file = "./Data/Ancillary/caha_wx.rds")
+}
+
+caha_prcp <- readRDS("./Data/Ancillary/caha_prcp.rds")
+caha_prcp_end <- max(caha_prcp$date)
+if (bell_dr[2] > caha_prcp_end) {
+  caha_prcp_new <- get_wx_ACIS("HSE", start = caha_prcp_end,
+                           end = bell_dr[2]) %>%
+    select(date, daily_prcp = precip_in) %>% 
+    arrange(date)
+  caha_prcp <- bind_rows(caha_prcp, caha_prcp_new) %>%
+    filter(!duplicated(date))
+  saveRDS(caha_prcp, file = "./Data/Ancillary/caha_prcp.rds")
+}
+```
+
+```{r pungo_tide}
+pungo <- readRDS("./Data/Ancillary/pungo.rds")
+pungo_end <- max(as.Date(pungo$dt))
+if (bell_dr[2] > pungo_end) {
+  # Acquired: https://mesonet.agron.iastate.edu/request/dcp/fe.phtml?network=NC_DCP
+  url <- "https://mesonet.agron.iastate.edu/cgi-bin/request/hads.py?network=NC_DCP&stations=BLHN7&year=%s&month1=1&day1=1&hour1=0&minute1=0&month2=12&day2=31&hour2=23&minute2=59&what=text&delim=comma&threshold=&threshold-var=RG"
+
+  poo <- sprintf(url, 2018) %>%
+    read.csv()
+  pungo_new <- lapply(year(pungo_end):year(bell_dr[2]), function(yr) {
+    message("Processing ", yr)
+    x <- sprintf(url, yr) %>%
+      read.csv() %>%
+      filter(!is.na(HGIRGZ)) %>%
+      mutate(dt = ymd_hms(utc_valid), # assigns correctly as UTC
+             # Likely just to piss me off, a gage correction of -2.4 feet was
+             # applied starting at 2014-11-01 14:30 (or 2014.835 in decimal_date)
+             pungo_wl = ifelse(decimal_date(dt) < 2014.835,
+                               (HGIRGZ - 2.4) / 3.28084,
+                               HGIRGZ/3.28084)) %>% # Adjust to NAVD88 and convert to m
+      select(dt, pungo_wl)
+    x
+  })
+  pungo <- bind_rows(pungo, pungo_new) %>%
+    # Occassionally Pungo measurements occur @ 1 or 31 minutes after the hour
+    # Round these to 0 and 30 and drop missing values
+    mutate(dt = round_date(dt, "3 minutes")) %>%
+    # Thin to measurements @ top and bottom of hour
+    filter(dt <= bell_dr[2],
+           minute(dt) %in% c(0, 30),
+           # Some occassional weird values and I'm too lazy to remove them more intelligently
+           pungo_wl < 1.5,
+           !duplicated(dt)) 
+  saveRDS(pungo, file = "./Data/Ancillary/pungo.rds")
+}
+```
+
+```{r dygraphs}
+### Water level dygraph
+# Join the relevant data
+wl_ts <- bell[, c("dt", "bell_wl")] %>% 
+  left_join(pungo, by = "dt") %>%
+  left_join(caha[, c("dt", "wl")], by = "dt") %>%
+  arrange(dt)
+attr(wl_ts$dt, "tzone") <- "Etc/GMT+5"
+init_window <- as.character(c(max(wl_ts$dt) - days(14), max(wl_ts$dt)))
+
+wl_ts <- wl_ts %>%
+  read.zoo(format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+5") %>%
+  round(3)
+
+# Make the dygraph
+wl <- dygraph(wl_ts, group = "wl") %>%
+  dyOptions(colors = colors,
+            axisLineWidth = 2, connectSeparatedPoints = FALSE,
+            strokeWidth = 1.5) %>%
+  dyAxis("y", label = "Water level (NAVD88 m)") %>%
+  dySeries("bell_wl", label = "Bell") %>%
+  dySeries("pungo_wl", label = "Pungo") %>%
+  dySeries("wl", label = "Hatteras") %>%
+  dyLegend(show = "follow", width = 400) %>%
+  dyRangeSelector(height = 20, strokeColor = "", dateWindow = init_window)
+
+### Sea surface temperature dygraph
+# Join the relevant data
+sst_ts <- bell[, c("dt", "bell_sst")] %>% 
+  left_join(caha_wx[, c("dt", "sst")], by = "dt") %>% 
+  arrange(dt)
+attr(sst_ts$dt, "tzone") <- "Etc/GMT+5"
+
+sst_ts <- sst_ts %>%
+  read.zoo(format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+5") %>%
+  round(2)
+
+# Make the dygraph
+sst <- dygraph(sst_ts, group = "wl") %>%
+  dyOptions(colors = colors[c(1,3)],
+            axisLineWidth = 2, connectSeparatedPoints = FALSE,
+            strokeWidth = 1.5) %>%
+  dyAxis("y", label = "Sea surface temperature (C)") %>%
+  dySeries("bell_sst", label = "Bell") %>%
+  dySeries("sst", label = "Hatteras") %>%
+  dyLegend(show = "follow", width = 400) %>%
+  dyRangeSelector(height = 20, strokeColor = "", dateWindow = init_window)
+
+### Salinity
+# Create the time series
+sal_ts <- bell[, c("dt", "bell_sal")] %>% 
+  mutate(date = as.Date(dt)) %>%
+  left_join(caha_prcp, by = "date") %>% 
+  select(-date) %>% arrange(dt) %>%
+  mutate(daily_prcp = daily_prcp * 2.54)
+attr(sal_ts$dt, "tzone") <- "Etc/GMT+5"
+
+# Set precip on "time series beaking date" to missing...
+needs_na <- which(month(sal_ts$dt) == 1 & year(sal_ts$dt) == 2015)
+sal_ts[needs_na, "daily_prcp"] <- NA
+
+sal_ts <- sal_ts %>%
+  read.zoo(format = "%Y-%m-%d %H:%M:%S", tz = "Etc/GMT+5") %>%
+  round(2)
+
+# Make the dygraph
+sal <- dygraph(sal_ts, group = "wl") %>%
+  dyOptions(colors = colors[c(1,3)], connectSeparatedPoints = FALSE,
+            axisLineWidth = 2, strokeWidth = 1.5) %>%
+  dyAxis("y", label = "Salinity (ppt)<br>24-h rainfall (cm)") %>%
+  dySeries("bell_sal", label = "Bell") %>%
+  dySeries("daily_prcp", label = "24-h rainfall", stepPlot = TRUE, fillGraph = TRUE,
+           color = colors[3]) %>%
+  dyLegend(show = "follow", width = 400) %>%
+  dyRangeSelector(height = 20, strokeColor = "", dateWindow = init_window)
+
+all <- manipulateWidget::combineWidgets(wl, sst, sal, ncol = 1)
+saveWidget(all, "SQ_water_dygraph_full.html")
+
+wl
+sst
+sal
+
+# markdown::rpubsUpload("Bell Island Pier water level visualization",
+#                       "SQ_water_dygraph.html",
+#                       "https://api.rpubs.com/api/v1/document/224096/6745a7f28c4e436ebb33052dd956699f",
+#                       method = "internal")
+
+```

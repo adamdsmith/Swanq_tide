@@ -1,0 +1,403 @@
+"0","knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+options(scipen = 999, stringsAsFactors = FALSE)
+
+# Loading required packages
+if (!requireNamespace(""devtools"", quietly = TRUE))
+    install.packages(""devtools"", quiet = TRUE)
+"
+"2","also installing the dependencies ‘sys’, ‘ini’, ‘ps’, ‘askpass’, ‘clisymbols’, ‘desc’, ‘fs’, ‘gh’, ‘rprojroot’, ‘whisker’, ‘processx’, ‘openssl’, ‘xopen’, ‘brew’, ‘commonmark’, ‘xml2’, ‘praise’, ‘usethis’, ‘callr’, ‘git2r’, ‘httr’, ‘memoise’, ‘pkgbuild’, ‘pkgload’, ‘rcmdcheck’, ‘roxygen2’, ‘sessioninfo’, ‘testthat’
+
+"
+"1","package â€˜sysâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜iniâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜psâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜askpassâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜clisymbolsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜descâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜fsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜ghâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜rprojrootâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜whiskerâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜processxâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜opensslâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜xopenâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜brewâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜commonmarkâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜xml2â€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜praiseâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜usethisâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜callrâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜git2râ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜httrâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜memoiseâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜pkgbuildâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜pkgloadâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜rcmdcheckâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜roxygen2â€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜sessioninfoâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜testthatâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜devtoolsâ€™ successfully unpacked and MD5 sums checked
+"
+"0","if (!requireNamespace(""nrssmisc"", quietly = TRUE))"
+"0","    devtools::install_github(""adamdsmith/nrsmisc"", quiet = TRUE)"
+"2","Installing 5 packages: sf, classInt, DBI, units, e1071
+"
+"1","package â€˜sfâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜classIntâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜DBIâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜unitsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜e1071â€™ successfully unpacked and MD5 sums checked
+"
+"0","pacman::p_load(readr, dplyr, lubridate, nrsmisc, rnoaa,"
+"0","               ggplot2, viridis, zoo, dygraphs, htmlwidgets, "
+"0","               manipulateWidget)"
+"2","Installing package into ‘C:/Users/adsmith/OneDrive - DOI/Documents/R/win-library/3.6’
+(as ‘lib’ is unspecified)
+"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/src/contrib/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","also installing the dependencies ‘triebeard’, ‘urltools’, ‘httpcode’, ‘rjson’, ‘crul’, ‘XML’, ‘rappdirs’, ‘isdparser’, ‘geonames’, ‘hoardr’
+
+"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES': HTTP status was '404 Not Found'"
+"2","unable to access index for repository http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6:
+  cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES'"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/triebeard_0.3.0.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 731782 bytes (714 KB)
+"
+"2","downloaded 714 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/urltools_1.7.3.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 874955 bytes (854 KB)
+"
+"2","downloaded 854 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/httpcode_0.2.0.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 31505 bytes (30 KB)
+"
+"2","downloaded 30 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/rjson_0.2.20.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 578301 bytes (564 KB)
+"
+"2","downloaded 564 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/crul_0.8.4.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 388563 bytes (379 KB)
+"
+"2","downloaded 379 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/XML_3.98-1.20.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 4610084 bytes (4.4 MB)
+"
+"2","downloaded 4.4 MB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/rappdirs_0.3.1.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 87269 bytes (85 KB)
+"
+"2","downloaded 85 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/isdparser_0.3.0.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 633237 bytes (618 KB)
+"
+"2","downloaded 618 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/geonames_0.999.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 65894 bytes (64 KB)
+"
+"2","downloaded 64 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/hoardr_0.5.2.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 360224 bytes (351 KB)
+"
+"2","downloaded 351 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/rnoaa_0.8.4.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 2595946 bytes (2.5 MB)
+"
+"2","downloaded 2.5 MB
+
+"
+"1","package â€˜triebeardâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜urltoolsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜httpcodeâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜rjsonâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜crulâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜XMLâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜rappdirsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜isdparserâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜geonamesâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜hoardrâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜rnoaaâ€™ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\adsmith\AppData\Local\Temp\1\RtmpAXEtNO\downloaded_packages"
+"1",""
+"1","
+"
+"2","
+rnoaa installed
+"
+"2","Installing package into ‘C:/Users/adsmith/OneDrive - DOI/Documents/R/win-library/3.6’
+(as ‘lib’ is unspecified)
+"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES': HTTP status was '404 Not Found'"
+"2","unable to access index for repository http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6:
+  cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES'"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/zoo_1.8-6.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 1103885 bytes (1.1 MB)
+"
+"2","downloaded 1.1 MB
+
+"
+"1","package â€˜zooâ€™ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\adsmith\AppData\Local\Temp\1\RtmpAXEtNO\downloaded_packages"
+"1",""
+"1","
+"
+"2","
+zoo installed
+"
+"2","Installing package into ‘C:/Users/adsmith/OneDrive - DOI/Documents/R/win-library/3.6’
+(as ‘lib’ is unspecified)
+"
+"2","also installing the dependency ‘xts’
+
+"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES': HTTP status was '404 Not Found'"
+"2","unable to access index for repository http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6:
+  cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES'"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/xts_0.11-2.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 963088 bytes (940 KB)
+"
+"2","downloaded 940 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/dygraphs_1.1.1.6.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 443254 bytes (432 KB)
+"
+"2","downloaded 432 KB
+
+"
+"1","package â€˜xtsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜dygraphsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\adsmith\AppData\Local\Temp\1\RtmpAXEtNO\downloaded_packages"
+"1",""
+"1","
+"
+"2","
+dygraphs installed
+"
+"2","Installing package into ‘C:/Users/adsmith/OneDrive - DOI/Documents/R/win-library/3.6’
+(as ‘lib’ is unspecified)
+"
+"2","also installing the dependencies ‘httpuv’, ‘xtable’, ‘sourcetools’, ‘later’, ‘promises’, ‘shiny’, ‘miniUI’, ‘webshot’
+
+"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.rds': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES.gz': HTTP status was '404 Not Found'"
+"2","cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES': HTTP status was '404 Not Found'"
+"2","unable to access index for repository http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6:
+  cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.6/PACKAGES'"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/httpuv_1.5.1.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 1495136 bytes (1.4 MB)
+"
+"2","downloaded 1.4 MB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/xtable_1.8-4.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 707194 bytes (690 KB)
+"
+"2","downloaded 690 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/sourcetools_0.1.7.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 530747 bytes (518 KB)
+"
+"2","downloaded 518 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/later_0.8.0.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 611202 bytes (596 KB)
+"
+"2","downloaded 596 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/promises_1.0.1.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 696008 bytes (679 KB)
+"
+"2","downloaded 679 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/shiny_1.3.2.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 4695101 bytes (4.5 MB)
+"
+"2","downloaded 4.5 MB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/miniUI_0.1.1.1.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 36634 bytes (35 KB)
+"
+"2","downloaded 35 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/webshot_0.5.1.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 141668 bytes (138 KB)
+"
+"2","downloaded 138 KB
+
+"
+"2","trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.6/manipulateWidget_0.10.0.zip'
+"
+"2","Content type 'application/zip'"
+"2"," length 1823133 bytes (1.7 MB)
+"
+"2","downloaded 1.7 MB
+
+"
+"1","package â€˜httpuvâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜xtableâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜sourcetoolsâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜laterâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜promisesâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜shinyâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜miniUIâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜webshotâ€™ successfully unpacked and MD5 sums checked
+"
+"1","package â€˜manipulateWidgetâ€™ successfully unpacked and MD5 sums checked
+"
+"1","
+"
+"1",""
+"1","The downloaded binary packages are in
+	C:\Users\adsmith\AppData\Local\Temp\1\RtmpAXEtNO\downloaded_packages"
+"1",""
+"1","
+"
+"2","
+manipulateWidget installed
+"
+"0","# Set colors"
+"0","colors <- substr(viridis(3, alpha = 0, end = 0.8, option = ""B""), 1, 7)"
